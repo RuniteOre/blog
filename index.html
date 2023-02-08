@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>Discordian's Blog</title>
+	<meta charset="UTF-8">
+	<link rel="stylesheet" href="style.css">
+	<script src="scripts/showdown.min.js"></script>
+	<script>
+		'use strict';
+		const defaultPost = "welcome";
+		var currentActive = undefined;
+		var contentBody = undefined;
+		var contentBodyBox = undefined;
+		var loading = undefined;
+		var navBox = undefined;
+		// tags contains all the tags, and posts associated with them
+		var tags = undefined;
+		var defaultNav = undefined;
+
+		// Handles everything that should happen after the page loads
+		function onload(notThis) {
+			contentBody = document.getElementById('contentbody');
+			loading = document.getElementById('loading');
+			navBox = document.getElementById("nav-box");
+			contentBodyBox = document.getElementById("content-body-box");
+			defaultNav = document.getElementById("main-nav").innerHTML;
+			let getVars = new URLSearchParams(window.location.search);
+			let postSelection = getVars.get("post");
+			let cidSelection = getVars.get("cid");
+			if (postSelection != null) {
+				loadContent(notThis, postSelection);
+			} else if (cidSelection != null) {
+				loadContentByCID(cidSelection);
+			} else {
+				loadContent(notThis, defaultPost);
+			}
+			// load tag index from tags/index.tags, parse the list, and store it in tags
+			let xhr = new XMLHttpRequest();
+			xhr.open("GET", "tags/index.tags", true);
+			xhr.onload = function() {
+				let tagDropdown = document.getElementById("tag-dropdown");
+				if (xhr.status == 200) {
+					// split xhr.responseText by newlines, loop through the lines, and add each line to the tags object
+					let tagLines = xhr.responseText.split("\n");
+					tags = {};
+					for (let i = 0; i < tagLines.length; i++) {
+						let tagLine = tagLines[i];
+						if (tagLine == "") {
+							continue;
+						}
+						let tagLineSplit = tagLine.split(" ");
+						// tag equals tagLineSplit[:-1]
+						let tag = tagLineSplit.slice(0, -1).join(" ");
+						// posts equals tagLineSplit[-1]
+						let posts = tagLineSplit[tagLineSplit.length - 1];
+						// tags[tag] = posts as an integer
+						tags[tag] = parseInt(posts);
+						// append tag to tag-dropdown
+						let tagOption = document.createElement("option");
+						tagOption.value = tag;
+						tagOption.innerHTML = tag;
+						tagDropdown.appendChild(tagOption);
+					}
+				} else {
+					console.log("Error loading tags");
+				}
+			}
+			xhr.send();
+			makeList();
+			addBoxBorders("box");
+			addBoxBorders("box2");
+		}
+
+		// Adds mousenter/mouseleave events to items in the nav list
+		function makeList() {
+			const list = document.getElementById("main-nav");
+			for (let i = 0; i < list.children.length; i++) {
+				list.children[i].addEventListener('mouseenter', function () { list.children[i].children[0].classList.add('marquee') });
+				list.children[i].addEventListener('mouseleave', function () { list.children[i].children[0].classList.remove('marquee') });
+			}
+		}
+
+		// Adds borders to ALL boxes, doesn't check if borders already exist, this should only be called once per class.
+		function addBoxBorders(boxClass) {
+			let boxes = document.getElementsByClassName(boxClass);
+			for (let i = 0; i < boxes.length; i++) {
+				boxes[i].appendChild(Object.assign(document.createElement("div"), { className: "top-left" }));
+				boxes[i].appendChild(Object.assign(document.createElement("div"), { className: "v-left" }));
+				boxes[i].appendChild(Object.assign(document.createElement("div"), { className: "bottom-left" }));
+				boxes[i].appendChild(Object.assign(document.createElement("div"), { className: "h-bottom" }));
+				boxes[i].appendChild(Object.assign(document.createElement("div"), { className: "bottom-right" }));
+				boxes[i].appendChild(Object.assign(document.createElement("div"), { className: "v-right" }));
+				boxes[i].appendChild(Object.assign(document.createElement("div"), { className: "top-right" }));
+				boxes[i].appendChild(Object.assign(document.createElement("div"), { className: "h-top" }));
+			}
+		}
+
+		// Loads a blog post, if you don't specify "this", then it'll only use ID (and nothing will be highlighted in the nav view)
+		async function loadContent(notThis, id) {
+			if (id == undefined) {
+				id = notThis;
+				notThis = undefined;
+			}
+			if (currentActive != undefined) {
+				currentActive.classList.remove("active");
+			}
+			if (notThis != undefined) {
+				notThis.classList.add("active");
+				currentActive = notThis;
+			} else {
+				currentActive = undefined;
+			}
+			window.history.pushState("", "", "?post=" + id);
+			await loadContentByURL('posts/' + id + '.md');
+		}
+
+		async function loadContentByURL(URL) {
+			contentBody.classList.remove("visible");
+			contentBody.classList.add("hidden");
+			loading.classList.add("visible");
+			loading.classList.remove("hidden");
+
+			let req = await fetch(URL);
+			contentBody.innerHTML = new showdown.Converter({simplifiedAutoLink: true, strikethrough: true, tables: true, simpleLineBreaks: true, openLinksInNewWindow: true}).makeHtml(await req.text());
+			contentBody.scrollTop = 0;
+
+			contentBody.classList.add("visible");
+			contentBody.classList.remove("hidden");
+			loading.classList.remove("visible");
+			loading.classList.add("hidden");
+		}
+
+		// Only supports isolated origins to promote best practices, as a result, this function doesn't support v0 CIDs.
+		async function loadContentByCID(CID) {
+			let hostname = window.location.host;
+			let URL = "";
+			// Are we using an IPFS gateway, local or otherwise? If so, let's leverage that...
+			if (hostname.includes(".ipfs.") || hostname.includes(".ipns.")) {
+				let splitHost = hostname.split(".");
+				URL = CID + ".ipfs." + splitHost[splitHost.length-1];
+			} else { // If we're not using an IPFS gateway, let's use dweb.link.
+				URL = CID + ".ipfs.dweb.link";
+			}
+
+			window.history.pushState("", "", "?cid=" + CID);
+			await loadContentByURL(window.location.protocol + "//" + URL);
+		}
+
+		function collapse(notThis) {
+			if (notThis.classList.contains("xpand")) {
+				notThis.classList.remove("xpand");
+				notThis.classList.add("collapse");
+				navBox.classList.remove("main-nav");
+				contentBodyBox.classList.remove("content-body");
+			} else {
+				notThis.classList.add("xpand");
+				notThis.classList.remove("collapse");
+				navBox.classList.add("main-nav");
+				contentBodyBox.classList.add("content-body");
+			}
+		}
+
+		// loadTag loads a list of all the posts in a tag, populating them in main-nav. If all is selected main-nav's HTML is replaced by the default.
+		function loadTag(notThis) {
+			let tag = notThis.value;
+			let mainNav = document.getElementById("main-nav");
+			if (tag == "all") {
+				mainNav.innerHTML = defaultNav;
+				// add visible class to mainNav, remove hidden class
+				mainNav.classList.add("visible");
+				mainNav.classList.remove("hidden");
+				makeList();
+				return;
+			}
+			// add hidden class to mainNav, remove visible class
+			mainNav.classList.add("hidden");
+			mainNav.classList.remove("visible");
+			let tagData = fetch("tags/" + tag + ".tag").then(function (response) {
+				return response.text();
+			}).then(async function (data) {
+				mainNav.innerHTML = "";
+				let posts = data.split("\n");
+				for (let i = 0; i < posts.length; i++) {
+					let response = await fetch("posts/" + posts[i] + ".meta");
+					let data = await response.text();
+				
+					let post = data.split("\n");
+					let title = post[0];
+					let postHTML = '<li onclick="loadContent(this, \'' + posts[i] + '\')"><a href="javascript:void(0)">' + title + '</a></li>';
+					mainNav.innerHTML += postHTML;
+				}
+				// add visible class to mainNav, remove hidden class
+				mainNav.classList.add("visible");
+				mainNav.classList.remove("hidden");
+				makeList();
+			});
+		}
+	</script>
+</head>
+
+<body onload="onload();">
+	<div class="box" style="width:calc(100% - 1em - 11px);height:calc(100% - 1em - 6px);left:0;top:0;">
+		<header class="box2" style="left:20%;width:calc(60% - 2em);">
+			<h1>Discordian's Blog</h1>
+		</header>
+		<select class="tag-dropdown" id="tag-dropdown" onchange="loadTag(this)">
+			<option value="all">All</option>
+		</select>
+		<div class="xpand" style="position:relative;top:calc(3.5em + 5.5vw);" onclick="collapse(this);"></div>
+		<nav class="box2 main-nav shrink" id="nav-box" style="top:calc(6em + 5.5vw);">
+			<ul id="main-nav" class="main-nav-list visible" style="top:calc(-1em - 4px);height:calc(100% + 1em - 8px);">
+				<li onclick="loadContent(this, 'readermode')"><a href="javascript:void(0)">A rant about reader-mode implementations</a></li>
+				<li onclick="loadContent(this, 'cidfacts')"><a href="javascript:void(0)">Messing around with CIDs</a></li>
+				<li onclick="loadContent(this, 'rustgowasm')"><a href="javascript:void(0)">My experience with Rust & Go in WASM</a></li>
+				<li onclick="loadContent(this, 'stealmyblog')"><a href="javascript:void(0)">How to steal this blog</a></li>
+			</ul>
+		</nav>
+		<div class="box content-body grow" id="content-body-box" style="height:calc(100% - 7em - 5.5vw - 26px);top:calc(6em + 5.5vw + 6px);">
+			<div style="position:fixed;" class="hidden" id="loading">Loading...</div>
+			<article id="contentbody" aria-label="content body" class="contentbody visible"></article>
+		</div>
+	</div>
+</body>
+
+</html>
