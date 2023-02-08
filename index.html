@@ -6,6 +6,7 @@
 	<meta charset="UTF-8">
 	<link rel="stylesheet" href="style.css">
 	<script src="scripts/showdown.min.js"></script>
+	<script src="test.js"></script>
 	<script>
 		'use strict';
 		const defaultPost = "welcome";
@@ -201,8 +202,8 @@
 
 <body onload="onload();">
 	<div class="box" style="width:calc(100% - 1em - 11px);height:calc(100% - 1em - 6px);left:0;top:0;">
-		<header class="box2" style="left:20%;width:calc(60% - 2em);">
-			<h1>Discordian's Blog</h1>
+		<header class="box2" style="left:20%;width:calc(60% - 2em); padding: 0;">
+			<h1>Runite's Blog</h1>
 		</header>
 		<select class="tag-dropdown" id="tag-dropdown" onchange="loadTag(this)">
 			<option value="all">All</option>
@@ -210,10 +211,9 @@
 		<div class="xpand" style="position:relative;top:calc(3.5em + 5.5vw);" onclick="collapse(this);"></div>
 		<nav class="box2 main-nav shrink" id="nav-box" style="top:calc(6em + 5.5vw);">
 			<ul id="main-nav" class="main-nav-list visible" style="top:calc(-1em - 4px);height:calc(100% + 1em - 8px);">
-				<li onclick="loadContent(this, 'readermode')"><a href="javascript:void(0)">A rant about reader-mode implementations</a></li>
-				<li onclick="loadContent(this, 'cidfacts')"><a href="javascript:void(0)">Messing around with CIDs</a></li>
-				<li onclick="loadContent(this, 'rustgowasm')"><a href="javascript:void(0)">My experience with Rust & Go in WASM</a></li>
 				<li onclick="loadContent(this, 'stealmyblog')"><a href="javascript:void(0)">How to steal this blog</a></li>
+    			<li onclick="loadContent(this, 'firststeps')"><a href="javascript:void(0)">First Steps</a></li>
+			</ul>
 			</ul>
 		</nav>
 		<div class="box content-body grow" id="content-body-box" style="height:calc(100% - 7em - 5.5vw - 26px);top:calc(6em + 5.5vw + 6px);">
