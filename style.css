@@ -29,13 +29,13 @@ h1 {
 	font-size: calc(2em + 4vw);
 	width:100%;
 	text-align:center;
-	font-family:Pancer;
-	color:#1f7;
+	font-family:serif;
+	color:#F8F8F8;
 }
 
 .tag-dropdown {
-	font-family:Pancer;
-	color:#1f7;
+	font-family:serif;
+	color:#F8F8F8;
 	/* set the background of the select element to black, without a border */
 	background-color: #111;
 	border: 0;
@@ -94,7 +94,7 @@ h1 {
 }
 
 .contentbody a {
-	color: #1f7;
+	color: #F8F8F8;
 	text-decoration: none;
 	font-weight: bold;
 }
@@ -115,7 +115,7 @@ h2 {
 	font-size: calc(1.5em + 2.5vw);
 	width:100%;
 	font-family:Pancer;
-	color:#1f7;
+	color:#F8F8F8;
 }
 
 h3 {
@@ -123,7 +123,7 @@ h3 {
 	font-size: calc(1.33em + 2vw);
 	width:100%;
 	font-family:Pancer;
-	color:#1f7;
+	color:#F8F8F8;
 }
 
 h4 {
@@ -131,7 +131,7 @@ h4 {
 	font-size: calc(1.0em + 1vw);
 	width:100%;
 	font-family:Pancer;
-	color:#1f7;
+	color:##F8F8F8;
 }
 
 /* content-body */
@@ -191,7 +191,7 @@ ul.main-nav-list li:hover {
 ul.main-nav-list li a {
 	text-decoration: none;
 	font-weight:bold;
-	color: #1f7;
+	color: #F8F8F8;
 	font-size:3em;
 	font-family:articulate;
 	text-shadow:
